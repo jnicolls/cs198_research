@@ -1,10 +1,11 @@
 import pandas
-import requests, json
+
 from pybedtools import BedTool
+from sklearn import linear_model
 
 SENTINEL = -1
 
-#regionsFile = "input/table1_list_vista_enchancer_elements.csv"
+regionsFile = "input/table1_list_vista_enchancer_elements.csv"
 #sequencingDatasetsFile = "input/table2_sequencingDatasets.csv"
 #encodeParentURL = "https://www.encodeproject.org/"
 #HEADERS = {'accept': 'application/json'}
@@ -42,10 +43,10 @@ SENTINEL = -1
 
 def processSequencingDatasets():
 	sequencingDatasets = pandas.read_csv(sequencingDatasetsFile)
-	row = next(sequencingDatasets.iterrows())[1]
+#	row = next(sequencingDatasets.iterrows())[1]
 #	for row in sequencingDatasets.iterrows():
-	if row["Accession Type of the Control File(s)"] == "ENCODE": 
-		processEncodeDataset(row["Accession"]) 
+#	if row["Accession Type of the Control File(s)"] == "ENCODE": 
+#		processEncodeDataset(row["Accession"]) 
 
 def main():
 	regions = pandas.read_csv(regionsFile)
