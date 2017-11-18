@@ -1,4 +1,5 @@
 import pandas
+import os
 
 from pybedtools import BedTool
 from sklearn import linear_model
@@ -6,51 +7,64 @@ from sklearn import linear_model
 SENTINEL = -1
 
 regionsFile = "input/table1_list_vista_enchancer_elements.csv"
-#sequencingDatasetsFile = "input/table2_sequencingDatasets.csv"
-#encodeParentURL = "https://www.encodeproject.org/"
-#HEADERS = {'accept': 'application/json'}
-
-#def getEncodeURL(urlSnippet):
-#	return encodeParentURL + urlSnippet + "/?frame=object"
-
-#def getEncodeJSONResponse(urlSnippet):
-#	response = requests.get(getEncodeURL(urlSnippet), headers=HEADERS)
-#	return response.json()
-
-#def processEncodeDataset(accession):
-#	responseExperimentDict = getEncodeJSONResponse(accession)	
-#	dataset = responseExperimentDict["dataset"]
-#	responseDatasetDict = getEncodeJSONResponse(dataset)
-#
-#	bedFilepath = SENTINEL
-#
-#	for encodeFile in responseDatasetDict["original_files"]:
-#		encodeFileDict = getEncodeJSONResponse(encodeFile)
-#		if "file_type" in encodeFileDict.keys() and "output_type" in encodeFileDict.keys():
-#			if encodeFileDict["file_type"] == "bed narrowPeak" and encodeFileDict["output_type"] == "replicated peaks":
-#				bedFilepath = encodeFileDict["href"]
-#				break
-#
-#	if bedFilepath == SENTINEL:
-#		raise ValueError("dataset " + dataset + " had no valid file for accession value " + accession)
-#
-#	bedFile = requests.get(getEncodeURL(bedFilepath))
-#	bedFileContent = BedTool(bedFile)
-#
-#
-#	print(len(bedFileContent))
+dataPath = "input/rawData/filteredBedGraph/"
+inputPath = "all_merged"
+trainingIndex = 9
+chrIndex = 0
+startIndex = 1
+endIndex = 2
+labelIndex = 8
 
 
 def processSequencingDatasets():
-	sequencingDatasets = pandas.read_csv(sequencingDatasetsFile)
-#	row = next(sequencingDatasets.iterrows())[1]
-#	for row in sequencingDatasets.iterrows():
-#	if row["Accession Type of the Control File(s)"] == "ENCODE": 
-#		processEncodeDataset(row["Accession"]) 
+    sequencingDatasets = pandas.read_csv(sequencingDatasetsFile)
+
+def readData(trainingData):
+    for filename in os.listdir(dataPath):
+
+        inputdata = pandas.read_table(dataPath + filename + inputPath)
+        inputdatarows = inputdata.iterrows()
+        inputrow = next(inputdata.iterrows())
+
+        for index, row in trainingData.iterrows():
+            while inputrow[startIndex] > row[endIndex]:
+                inputrow = next(inputdatarows)
+            rpm = 0.0
+            k = (row[endIndex] - row[startIndex])/1000
+            while inputrow[endIndex] < row[endIndex]:
+                rpm += inputrow[3]
+                inputrow = next(inputdatarows)
+            rpkm = rpm/1000
+            row['rpkms'] += rpkms
+            row['totals'] += totals
+
+    for index, row in trainingData:
+        row['rpkms'] /= row['totals'] 
+
+    return trainingData
+
+
+
+
 
 def main():
-	regions = pandas.read_csv(regionsFile)
-	processSequencingDatasets()
+    regions = pandas.read_csv(regionsFile)
+    chrs, starts, ends, rpkms, totals, label = []
+        for index, row in regions.iterrows():
+            if row[trainingIndex] == "yes":
+      #          chrs.append(row[chrIndex])
+                starts.append(row[startIndex])
+                ends.append(row[endIndex])
+                labels.append(row[labelIndex])
+    for i in range(0, len(starts)):
+        rpkms.append(0.0)
+        totals.append(0)
+    d = {'starts': starts, 'ends':ends, 'rpkms':rpkms, 'totals':totals}
+    trainingData = pandas.df(data=d)
+    trainingData = readData(trainingData)
+
+
+
 
 
 if __name__ == "__main__":
